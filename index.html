@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GUARD TECH | Live Project Feed</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Arial Black', Gadget, sans-serif;
+            background-color: #ffffff; color: #222;
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+            overflow: hidden; 
+        }
+        
+        /* Fixed Header */
+        header {
+            background-color: #d32f2f; color: white;
+            padding: 30px 20px; text-align: center;
+            flex: 0 0 auto; 
+            position: relative;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .auth-controls {
+            position: absolute; right: 20px; top: 20px;
+            display: flex; gap: 10px;
+        }
+        .icon-btn {
+            background: white; color: #d32f2f; border: none;
+            padding: 8px 15px; border-radius: 50px; cursor: pointer;
+            font-weight: bold; font-family: 'Segoe UI', sans-serif;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 8px; text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .logout-btn, .add-btn { display: none; }
+        .logout-btn { background: #ffcc00; color: #222; }
+        .add-btn { background: #4ade80; color: #fff; }
+
+        h1 { margin: 0; font-size: 2.5rem; letter-spacing: 5px; text-transform: uppercase; }
+        .subtitle { font-size: 1rem; margin-top: 5px; letter-spacing: 3px; font-weight: bold; color: rgba(255,255,255,0.8); }
+
+        /* Scrollable Project List Container */
+        .project-list-container {
+            flex: 1 1 auto;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-list { 
+            flex: 1 1 auto; 
+            overflow-y: auto; 
+            width: 100%; 
+            background: #fff;
+            scroll-behavior: smooth;
+        }
+        
+        .project-item {
+            flex: 1; display: flex; justify-content: space-between;
+            align-items: center; padding: 30px 60px; border-bottom: 2px solid #eeeeee;
+            flex-wrap: wrap; gap: 20px;
+        }
+        .project-item:nth-child(even) { background-color: #fffafa; }
+        .project-content { display: flex; align-items: center; flex: 1; min-width: 300px; }
+        
+        .serial-number {
+            font-size: 3rem; color: #d32f2f; font-weight: 900;
+            margin-right: 30px; padding-right: 30px;
+            border-right: 5px solid #d32f2f; min-width: 100px; text-align: center;
+        }
+        .project-info h3 { margin: 0; color: #222; font-size: 1.8rem; text-transform: uppercase; }
+        .project-info p { margin: 10px 0 0; color: #d32f2f; font-size: 1rem; font-weight: bold; }
+
+        .admin-actions { display: none; gap: 10px; }
+        .btn-delete { background: #f44336; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        .status-badge {
+            background: linear-gradient(90deg, #d32f2f, #ff4d4d, #d32f2f);
+            background-size: 200% auto; color: white;
+            padding: 15px 30px; border-radius: 5px;
+            font-size: 1.2rem; font-weight: 900; text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(211, 47, 47, 0.4);
+            animation: shine 2s linear infinite, grow 1.5s ease-in-out infinite alternate;
+            border: 2px solid white;
+            text-align: center;
+            white-space: nowrap;
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+        @keyframes grow { from { transform: scale(1); } to { transform: scale(1.05); } }
+
+        /* Floating Move to Top Button */
+        #scrollTopBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #222;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 99;
+            transition: transform 0.2s;
+        }
+        #scrollTopBtn:hover { transform: scale(1.1); background-color: #d32f2f; }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+            padding: 20px;
+        }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; border-top: 10px solid #d32f2f; text-align: center; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 5px; font-family: sans-serif; }
+        .submit-btn { background: #d32f2f; color: white; border: none; width: 100%; padding: 15px; cursor: pointer; font-weight: bold; }
+        
+        /* Colorful Footer */
+        .dev-footer {
+            background: linear-gradient(45deg, #f44336, #ff9800, #4caf50, #2196f3);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            flex: 0 0 auto;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; letter-spacing: 3px; }
+            .subtitle { font-size: 0.8rem; letter-spacing: 1px; }
+            header { padding: 20px 10px; }
+            .auth-controls { position: relative; right: auto; top: auto; justify-content: center; margin-top: 15px; }
+            .project-item { padding: 30px 20px; text-align: center; justify-content: center; }
+            .project-content { flex-direction: column; min-width: 100%; }
+            .serial-number { border-right: none; border-bottom: 5px solid #d32f2f; margin: 0 0 15px 0; padding: 0 0 10px 0; min-width: auto; }
+            .project-info h3 { font-size: 1.4rem; }
+            .status-badge { margin-top: 10px; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>GUARD TECH</h1>
+        <div class="subtitle">LIST OF RUNNING PROJECTS</div>
+        <div class="auth-controls">
+            <button class="icon-btn add-btn" id="addBtn" onclick="toggleModal('addModal', true)">➕ ADD</button>
+            <button class="icon-btn" id="loginBtn" onclick="toggleModal('loginModal', true)">👤 LOGIN</button>
+            <button class="icon-btn logout-btn" id="logoutBtn" onclick="handleLogout()">🚀 LOGOUT</button>
+        </div>
+    </header>
+
+    <div class="project-list-container">
+        <div class="project-list" id="projectList">
+            </div>
+        <button id="scrollTopBtn" onclick="scrollToTop()">↑</button>
+    </div>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:#d32f2f">Admin Access</h2>
+            <input type="text" id="uid" placeholder="Login ID">
+            <input type="password" id="pwd" placeholder="Password">
+            <button class="submit-btn" onclick="handleLogin()">LOGIN</button>
+            <button onclick="toggleModal('loginModal', false)" style="background:none; border:none; margin-top:10px; cursor:pointer; color: #666;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:#d32f2f">New Project</h2>
+            <input type="text" id="newTitle" placeholder="Project Name">
+            <textarea id="newDesc" placeholder="Description" rows="3"></textarea>
+            <button class="submit-btn" onclick="addNewProject()">SAVE TO CLOUD</button>
+            <button onclick="toggleModal('addModal', false)" style="background:none; border:none; margin-top:10px; cursor:pointer; color: #666;">Cancel</button>
+        </div>
+    </div>
+
+    <div class="dev-footer">Developed By Jakaria Ahmed</div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlH6W4EItIfCk81wm3ys1wvgTr0gESRo0",
+            authDomain: "three-60cb8.firebaseapp.com",
+            databaseURL: "https://three-60cb8-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "three-60cb8",
+            storageBucket: "three-60cb8.appspot.com",
+            messagingSenderId: "460771224383",
+            appId: "1:460771224383:web:47b2cf06f471919c94418a",
+            measurementId: "G-F6Y4XZZ72D"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const projectRef = db.ref("projects");
+
+        let isAdmin = false;
+
+        // Scroll logic for Top Button
+        const projectList = document.getElementById('projectList');
+        const topBtn = document.getElementById('scrollTopBtn');
+
+        projectList.onscroll = function() {
+            if (projectList.scrollTop > 300) {
+                topBtn.style.display = "block";
+            } else {
+                topBtn.style.display = "none";
+            }
+        };
+
+        function scrollToTop() {
+            projectList.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
+
+        function handleLogin() {
+            if(document.getElementById('uid').value === '1234@' && document.getElementById('pwd').value === '@1234') {
+                isAdmin = true;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'flex';
+                document.getElementById('addBtn').style.display = 'flex';
+                toggleModal('loginModal', false);
+                projectRef.once('value', () => {}); // Refresh UI state
+            } else { alert('Access Denied'); }
+        }
+
+        function handleLogout() { location.reload(); }
+
+        projectRef.on('value', (snapshot) => {
+            const list = document.getElementById('projectList');
+            list.innerHTML = "";
+            let count = 1;
+            
+            snapshot.forEach((childSnapshot) => {
+                const p = childSnapshot.val();
+                const key = childSnapshot.key;
+                const serial = count < 10 ? '0' + count : count;
+                
+                const item = document.createElement('div');
+                item.className = 'project-item';
+                item.innerHTML = `
+                    <div class="project-content">
+                        <div class="serial-number">${serial}</div>
+                        <div class="project-info">
+                            <h3>${p.title}</h3>
+                            <p>${p.desc}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="status-badge" style="display: ${isAdmin ? 'none' : 'block'}">Running</div>
+                        <div class="admin-actions" style="display: ${isAdmin ? 'flex' : 'none'}">
+                            <button class="btn-delete" onclick="deleteProject('${key}')">DELETE</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(item);
+                count++;
+            });
+        });
+
+        function addNewProject() {
+            const title = document.getElementById('newTitle').value;
+            const desc = document.getElementById('newDesc').value;
+            if (title && desc) {
+                projectRef.push({ title, desc });
+                toggleModal('addModal', false);
+                document.getElementById('newTitle').value = '';
+                document.getElementById('newDesc').value = '';
+            }
+        }
+
+        function deleteProject(key) {
+            if(confirm('Delete Project permanently?')) {
+                projectRef.child(key).remove();
+            }
+        }
+    </script>
+</body>
+</html>
