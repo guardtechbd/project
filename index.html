@@ -80,38 +80,46 @@
 
         .admin-actions { display: none; gap: 10px; }
         .btn-delete { background: #f44336; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-edit { background: #2196f3; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
 
+        /* Status Badge Logic */
         .status-badge {
-            background: linear-gradient(90deg, #d32f2f, #ff4d4d, #d32f2f);
-            background-size: 200% auto; color: white;
             padding: 15px 30px; border-radius: 5px;
             font-size: 1.2rem; font-weight: 900; text-transform: uppercase;
+            border: 2px solid white; text-align: center; white-space: nowrap;
+        }
+
+        /* RUNNING - Animated Red */
+        .status-running {
+            background: linear-gradient(90deg, #d32f2f, #ff4d4d, #d32f2f);
+            background-size: 200% auto; color: white;
             box-shadow: 0 0 15px rgba(211, 47, 47, 0.4);
             animation: shine 2s linear infinite, grow 1.5s ease-in-out infinite alternate;
-            border: 2px solid white;
-            text-align: center;
-            white-space: nowrap;
         }
+
+        /* HOLD - Solid Yellow */
+        .status-hold {
+            background-color: #ffcc00; color: #222;
+            box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3);
+        }
+
+        /* COMPLETED - Solid Green */
+        .status-completed {
+            background-color: #4caf50; color: white;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
         @keyframes shine { to { background-position: 200% center; } }
         @keyframes grow { from { transform: scale(1); } to { transform: scale(1.05); } }
 
         /* Floating Move to Top Button */
         #scrollTopBtn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background-color: #222;
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: none; /* Hidden by default */
-            font-size: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 99;
-            transition: transform 0.2s;
+            position: absolute; bottom: 20px; right: 20px;
+            background-color: #222; color: white;
+            border: none; width: 50px; height: 50px;
+            border-radius: 50%; cursor: pointer; display: none;
+            font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 99; transition: transform 0.2s;
         }
         #scrollTopBtn:hover { transform: scale(1.1); background-color: #d32f2f; }
 
@@ -121,22 +129,9 @@
             padding: 20px;
         }
         .modal-content { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; border-top: 10px solid #d32f2f; text-align: center; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 5px; font-family: sans-serif; }
+        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 5px; font-family: sans-serif; }
         .submit-btn { background: #d32f2f; color: white; border: none; width: 100%; padding: 15px; cursor: pointer; font-weight: bold; }
         
-        /* Colorful Footer */
-        .dev-footer {
-            background: linear-gradient(45deg, #f44336, #ff9800, #4caf50, #2196f3);
-            color: white;
-            text-align: center;
-            padding: 8px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            flex: 0 0 auto;
-            text-transform: uppercase;
-        }
-
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; letter-spacing: 3px; }
             .subtitle { font-size: 0.8rem; letter-spacing: 1px; }
@@ -163,8 +158,7 @@
     </header>
 
     <div class="project-list-container">
-        <div class="project-list" id="projectList">
-            </div>
+        <div class="project-list" id="projectList"></div>
         <button id="scrollTopBtn" onclick="scrollToTop()">↑</button>
     </div>
 
@@ -183,12 +177,31 @@
             <h2 style="color:#d32f2f">New Project</h2>
             <input type="text" id="newTitle" placeholder="Project Name">
             <textarea id="newDesc" placeholder="Description" rows="3"></textarea>
+            <select id="newStatus">
+                <option value="Running">Running</option>
+                <option value="Hold">Hold</option>
+                <option value="Completed">Completed</option>
+            </select>
             <button class="submit-btn" onclick="addNewProject()">SAVE TO CLOUD</button>
             <button onclick="toggleModal('addModal', false)" style="background:none; border:none; margin-top:10px; cursor:pointer; color: #666;">Cancel</button>
         </div>
     </div>
 
-    <div class="dev-footer">Developed By Jakaria Ahmed</div>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:#d32f2f">Update Project</h2>
+            <input type="hidden" id="editKey">
+            <input type="text" id="editTitle" placeholder="Project Name">
+            <textarea id="editDesc" placeholder="Description" rows="3"></textarea>
+            <select id="editStatus">
+                <option value="Running">Running</option>
+                <option value="Hold">Hold</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <button class="submit-btn" onclick="updateProject()">UPDATE PROJECT</button>
+            <button onclick="toggleModal('editModal', false)" style="background:none; border:none; margin-top:10px; cursor:pointer; color: #666;">Cancel</button>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -213,21 +226,15 @@
 
         let isAdmin = false;
 
-        // Scroll logic for Top Button
         const projectList = document.getElementById('projectList');
         const topBtn = document.getElementById('scrollTopBtn');
 
         projectList.onscroll = function() {
-            if (projectList.scrollTop > 300) {
-                topBtn.style.display = "block";
-            } else {
-                topBtn.style.display = "none";
-            }
+            if (projectList.scrollTop > 300) { topBtn.style.display = "block"; } 
+            else { topBtn.style.display = "none"; }
         };
 
-        function scrollToTop() {
-            projectList.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        function scrollToTop() { projectList.scrollTo({ top: 0, behavior: 'smooth' }); }
 
         function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
 
@@ -238,13 +245,13 @@
                 document.getElementById('logoutBtn').style.display = 'flex';
                 document.getElementById('addBtn').style.display = 'flex';
                 toggleModal('loginModal', false);
-                projectRef.once('value', () => {}); // Refresh UI state
+                projectRef.once('value', (snapshot) => { renderList(snapshot); });
             } else { alert('Access Denied'); }
         }
 
         function handleLogout() { location.reload(); }
 
-        projectRef.on('value', (snapshot) => {
+        function renderList(snapshot) {
             const list = document.getElementById('projectList');
             list.innerHTML = "";
             let count = 1;
@@ -253,7 +260,13 @@
                 const p = childSnapshot.val();
                 const key = childSnapshot.key;
                 const serial = count < 10 ? '0' + count : count;
+                const status = p.status || 'Running'; // Fallback for old data
                 
+                // Determine class based on status
+                let statusClass = "status-running";
+                if(status === 'Hold') statusClass = "status-hold";
+                if(status === 'Completed') statusClass = "status-completed";
+
                 const item = document.createElement('div');
                 item.className = 'project-item';
                 item.innerHTML = `
@@ -265,8 +278,9 @@
                         </div>
                     </div>
                     <div>
-                        <div class="status-badge" style="display: ${isAdmin ? 'none' : 'block'}">Running</div>
+                        <div class="status-badge ${statusClass}" style="display: ${isAdmin ? 'none' : 'block'}">${status}</div>
                         <div class="admin-actions" style="display: ${isAdmin ? 'flex' : 'none'}">
+                            <button class="btn-edit" onclick="openEditModal('${key}', '${p.title.replace(/'/g, "\\'")}', '${p.desc.replace(/'/g, "\\'")}', '${status}')">EDIT</button>
                             <button class="btn-delete" onclick="deleteProject('${key}')">DELETE</button>
                         </div>
                     </div>
@@ -274,16 +288,40 @@
                 list.appendChild(item);
                 count++;
             });
-        });
+        }
+
+        projectRef.on('value', (snapshot) => { renderList(snapshot); });
 
         function addNewProject() {
             const title = document.getElementById('newTitle').value;
             const desc = document.getElementById('newDesc').value;
+            const status = document.getElementById('newStatus').value;
             if (title && desc) {
-                projectRef.push({ title, desc });
+                projectRef.push({ title, desc, status });
                 toggleModal('addModal', false);
                 document.getElementById('newTitle').value = '';
                 document.getElementById('newDesc').value = '';
+                document.getElementById('newStatus').value = 'Running';
+            }
+        }
+
+        function openEditModal(key, title, desc, status) {
+            document.getElementById('editKey').value = key;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDesc').value = desc;
+            document.getElementById('editStatus').value = status;
+            toggleModal('editModal', true);
+        }
+
+        function updateProject() {
+            const key = document.getElementById('editKey').value;
+            const title = document.getElementById('editTitle').value;
+            const desc = document.getElementById('editDesc').value;
+            const status = document.getElementById('editStatus').value;
+            if (key && title && desc) {
+                projectRef.child(key).update({ title, desc, status })
+                .then(() => { toggleModal('editModal', false); })
+                .catch(err => alert("Update failed: " + err.message));
             }
         }
 
